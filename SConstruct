@@ -3,7 +3,7 @@
 import os
 
 env = Environment(
-    CCFLAGS="-Wall -g -O0 -fopenmp -std=c++0x",
+    CCFLAGS="-Wall -g -O0",
     LIBS=["gomp"],
     CPPPATH=[Dir(".")])
 Export("env")

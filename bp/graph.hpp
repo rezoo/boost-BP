@@ -28,7 +28,7 @@ select_in_message(const Edge& edge,
 
 template<typename Message>
 std::pair<boost::optional<Message>, boost::optional<Message> >
-make_message() {
+make_empty_message() {
     typedef boost::optional<Message> OMessage;
     typedef std::pair<OMessage, OMessage> EdgeMessage;
     return EdgeMessage(OMessage(), OMessage());
@@ -62,7 +62,7 @@ void sum_product(const Graph& graph,
     std::fill(
         messages.begin(),
         messages.end(),
-        detail::make_message<Message>());
+        detail::make_empty_message<Message>());
     MessageMap message_map(messages.begin(), edge_map);
 
     // print
