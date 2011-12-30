@@ -1,0 +1,10 @@
+# ignore vim swap files
+*.swp
+
+# ignore scons database
+.sconsign.dblite
+
+# ignore object files and executables
+testings/all_test
+testings/all_test.exe
+testings/*.o
