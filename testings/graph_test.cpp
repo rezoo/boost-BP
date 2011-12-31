@@ -14,54 +14,49 @@ typedef adjacency_list<
             vecS, vecS, bidirectionalS,
             no_property,
             property<edge_index_t, std::size_t> > Graph;
-typedef graph_traits<Graph> GraphTraits;
-typedef GraphTraits::edge_iterator EdgeIterator;
-typedef GraphTraits::edge_descriptor Edge;
+typedef graph_traits<Graph> Traits;
+typedef Traits::edge_iterator EdgeIterator;
+typedef Traits::edge_descriptor Edge;
 typedef property_map<Graph, edge_index_t>::type EdgeIndexMap;
 
-typedef int MessageType;
-typedef optional<MessageType> OptionalType;
-typedef std::pair<OptionalType, OptionalType> EdgeMessageType;
-typedef std::vector<EdgeMessageType> MessageVectorType;
-typedef iterator_property_map<
-            MessageVectorType::iterator,
-            EdgeIndexMap> IterMap;
+struct test_visitor {
+    template<typename Message, typename Edge,
+             typename MessageIterator,
+             typename Vertex, typename Graph>
+    void make_message(Message& target, const Edge& edge,
+                      MessageIterator begin,
+                      MessageIterator end,
+                      const Vertex& vertex, const Graph& graph) {
+        target = Message(1);
+        std::cout << "message:"
+                  << boost::get(boost::vertex_index,
+                                graph,
+                                boost::source(edge, graph))
+                  << " -> "
+                  << boost::get(boost::vertex_index,
+                                graph,
+                                boost::target(edge, graph))
+                  << std::endl;
+    }
+};
 
-inline EdgeMessageType make_message() {
-    return EdgeMessageType(OptionalType(), OptionalType());
-}
-
-inline EdgeMessageType make_message(MessageType v1,
-                                    MessageType v2) {
-    return EdgeMessageType(OptionalType(v1), OptionalType(v2));
-}
 
 TEST(graphTest, construction)
 {
-    // make graph
     Graph graph;
-    for(int i=0; i<5; ++i) {
+
+    const int max_n_vertex = 5;
+    for(int i=0; i<max_n_vertex; ++i) {
         add_vertex(graph);
     }
-    for(int i=0; i<5-1; ++i) {
-        add_edge(i, i+1, i, graph);
+    for(int i=0; i<max_n_vertex-1; ++i) {
+        add_edge(i, i+1, 2*i, graph);
+        add_edge(i+1, i, 2*i + 1, graph);
     }
 
-    // print edge
-    EdgeIterator ei, ei_end;
-    for(tie(ei, ei_end) = edges(graph); ei != ei_end; ++ei) {
-        std::cout << get(edge_index, graph, *ei) << std::endl;
-    }
-    // create exterior map
-    EdgeIndexMap edge_map = get(edge_index, graph);
-    MessageVectorType props;
-    props.push_back(make_message(0, 0));
-    props.push_back(make_message(1, 1));
-    props.push_back(make_message(2, 2));
-    props.push_back(make_message(3, 3));
-    IterMap message_map(props.begin(), edge_map);
-
-    sum_product(graph, (int)0, props.begin());
+    int belief[max_n_vertex];
+    bp::sum_product<int>(graph, belief, test_visitor());
 
     ASSERT_TRUE(1 == 1);
 }
+
