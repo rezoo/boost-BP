@@ -4,7 +4,7 @@ import os
 
 env = Environment(
     CCFLAGS="-Wall -g -O0",
-    LIBS=["gomp"],
+    LIBS=["gomp", "pthread"],
     CPPPATH=[Dir(".")])
 Export("env")
 Default(env.SConscript("testings/SConscript"))
