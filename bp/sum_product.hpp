@@ -4,9 +4,9 @@
 
 #include <boost/graph/graph_traits.hpp>
 
-enum edge_message_t { edge_message };
-enum vertex_belief_t { vertex_belief };
 namespace boost {
+    enum edge_message_t { edge_message };
+    enum vertex_belief_t { vertex_belief };
     BOOST_INSTALL_PROPERTY(edge, message);
     BOOST_INSTALL_PROPERTY(vertex, belief);
 }
@@ -109,8 +109,8 @@ template<typename Graph, typename Visitor>
 void sum_product(Graph& graph, Visitor visitor) {
     sum_product(
         graph, visitor,
-        boost::get(edge_message, graph),
-        boost::get(vertex_belief, graph));
+        boost::get(boost::edge_message, graph),
+        boost::get(boost::vertex_belief, graph));
 }
 
 } // namespace bp
