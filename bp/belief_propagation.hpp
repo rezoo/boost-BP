@@ -10,9 +10,9 @@ namespace bp {
 template<typename Graph, typename Visitor,
          typename MessagePropertyMap,
          typename BeliefPropertyMap>
-void sum_product(const Graph& graph, Visitor visitor,
-                 MessagePropertyMap message_map,
-                 BeliefPropertyMap belief_map) {
+void belief_propagation(const Graph& graph, Visitor visitor,
+                        MessagePropertyMap message_map,
+                        BeliefPropertyMap belief_map) {
     typedef boost::graph_traits<Graph> Traits;
     typedef typename Traits::vertex_descriptor Vertex;
     typedef typename Traits::edge_descriptor Edge;
@@ -114,8 +114,8 @@ void sum_product(const Graph& graph, Visitor visitor,
 }
 
 template<typename Graph, typename Visitor>
-void sum_product(Graph& graph, Visitor visitor) {
-    sum_product(
+void belief_propagation(Graph& graph, Visitor visitor) {
+    belief_propagation(
         graph, visitor,
         boost::get(boost::edge_message, graph),
         boost::get(boost::vertex_belief, graph));

@@ -5,20 +5,9 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 
-#include <bp/sum_product.hpp>
+#include <bp/belief_propagation.hpp>
 
 using namespace boost;
-
-typedef property<vertex_belief_t, int> VertexProperty;
-typedef property<edge_index_t, std::size_t,
-         property<edge_message_t, int> > EdgeProperty;
-
-typedef adjacency_list<
-            vecS, vecS, bidirectionalS,
-            VertexProperty, EdgeProperty> Graph;
-typedef graph_traits<Graph> Traits;
-typedef Traits::edge_iterator EdgeIterator;
-typedef Traits::edge_descriptor Edge;
 
 struct test_visitor {
 
@@ -74,6 +63,16 @@ struct test_visitor {
 
 TEST(MessagePassing, linear_graph)
 {
+    typedef property<vertex_belief_t, int> VertexProperty;
+    typedef property<edge_index_t, std::size_t,
+            property<edge_message_t, int> > EdgeProperty;
+    typedef adjacency_list<
+                vecS, vecS, bidirectionalS,
+                VertexProperty, EdgeProperty> Graph;
+    typedef graph_traits<Graph> Traits;
+    typedef Traits::edge_iterator EdgeIterator;
+    typedef Traits::edge_descriptor Edge;
+
     Graph graph;
 
     const int max_n_vertex = 10;
@@ -85,7 +84,7 @@ TEST(MessagePassing, linear_graph)
         add_edge(i+1, i, 2*i + 1, graph);
     }
 
-    bp::sum_product(graph, test_visitor());
+    bp::belief_propagation(graph, test_visitor());
 
     Traits::edge_iterator ei, ei_end;
     tie(ei, ei_end) = edges(graph);
