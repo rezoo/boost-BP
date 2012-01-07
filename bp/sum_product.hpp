@@ -1,15 +1,9 @@
 #pragma once
 
 #include <vector>
-
 #include <boost/graph/graph_traits.hpp>
-
-namespace boost {
-    enum edge_message_t { edge_message };
-    enum vertex_belief_t { vertex_belief };
-    BOOST_INSTALL_PROPERTY(edge, message);
-    BOOST_INSTALL_PROPERTY(vertex, belief);
-}
+#include <boost/property_map/vector_property_map.hpp>
+#include "properties.hpp"
 
 namespace bp {
 
@@ -27,6 +21,14 @@ void sum_product(const Graph& graph, Visitor visitor,
     // initialize messages
     visitor.init_messages(message_map, graph);
     visitor.init_beliefs(belief_map, graph);
+
+    // initialize the exterior property map
+    boost::vector_property_map<unsigned char> initialized_map;
+    typename Traits::edge_iterator ei, ei_end;
+    boost::tie(ei, ei_end) = boost::edges(graph);
+    for(; ei != ei_end; ++ei) {
+        initialized_map[boost::get(boost::edge_index, graph, *ei)] = 0;
+    }
 
     // make messages
     EdgesSizeType n_unknown_messages = boost::num_edges(graph);
@@ -46,7 +48,8 @@ void sum_product(const Graph& graph, Visitor visitor,
             typename Traits::in_edge_iterator ein, ein_end;
             boost::tie(ein, ein_end) = boost::in_edges(*vi, graph);
             for(; ein != ein_end; ++ein) {
-                if(visitor.is_initialized(*ein, message_map, graph)) {
+                if(initialized_map[
+                        boost::get(boost::edge_index, graph, *ein)] == 1) {
                     known_in_edges.push_back(*ein);
                 } else {
                     unknown_in_edges.push_back(*ein);
@@ -55,7 +58,8 @@ void sum_product(const Graph& graph, Visitor visitor,
             typename Traits::out_edge_iterator eout, eout_end;
             boost::tie(eout, eout_end) = boost::out_edges(*vi, graph);
             for(; eout != eout_end; ++eout) {
-                if(!visitor.is_initialized(*eout, message_map, graph))
+                if(initialized_map[
+                        boost::get(boost::edge_index, graph, *eout)] == 0)
                     unknown_out_edges.push_back(*eout);
             }
 
@@ -70,6 +74,8 @@ void sum_product(const Graph& graph, Visitor visitor,
                         message_map,
                         graph);
                     n_unknown_messages--;
+                    initialized_map[
+                        boost::get(boost::edge_index, graph, *it)] = 1;
                 }
             } else if(unknown_in_edges.size() == 1) {
                 Vertex target = boost::source(unknown_in_edges[0], graph);
@@ -84,6 +90,8 @@ void sum_product(const Graph& graph, Visitor visitor,
                             message_map,
                             graph);
                         n_unknown_messages--;
+                        initialized_map[
+                            boost::get(boost::edge_index, graph, *it)] = 1;
                         break;
                     }
                 }
@@ -91,7 +99,7 @@ void sum_product(const Graph& graph, Visitor visitor,
         } // end vertex loop
     } // end message loop
 
-    // make belief
+    // make beliefs
     typename Traits::vertex_iterator vi, vi_end;
     boost::tie(vi, vi_end) = boost::vertices(graph);
     for(; vi != vi_end; ++vi) {

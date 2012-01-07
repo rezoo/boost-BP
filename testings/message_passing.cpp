@@ -10,7 +10,8 @@
 using namespace boost;
 
 typedef property<vertex_belief_t, int> VertexProperty;
-typedef property<edge_message_t, int> EdgeProperty;
+typedef property<edge_index_t, std::size_t,
+         property<edge_message_t, int> > EdgeProperty;
 
 typedef adjacency_list<
             vecS, vecS, bidirectionalS,
@@ -23,29 +24,10 @@ struct test_visitor {
 
     template<typename MessagePropertyMap, typename Graph>
     void init_messages(MessagePropertyMap message_map,
-                       const Graph& graph) {
-        typedef graph_traits<Graph> Traits;
-        typedef typename Traits::vertex_descriptor Vertex;
-        typedef typename Traits::edge_descriptor Edge;
-
-        typename Traits::edge_iterator ei, ei_end;
-        tie(ei, ei_end) = edges(graph);
-        for(; ei != ei_end; ++ei) {
-            put(message_map, *ei, -1);
-        }
-    }
+                       const Graph& graph) {}
 
     template<typename BeliefPropertyMap, typename Graph>
     void init_beliefs(BeliefPropertyMap, const Graph&) {}
-
-    template<typename Edge,
-             typename MessagePropertyMap,
-             typename Graph>
-    bool is_initialized(Edge edge,
-                        MessagePropertyMap message_map,
-                        const Graph&) {
-        return (get(message_map, edge) > 0);
-    }
 
     template<typename Edge,
              typename EdgeIterator,
@@ -99,8 +81,8 @@ TEST(MessagePassing, linear_graph)
         add_vertex(graph);
     }
     for(int i=0; i<max_n_vertex-1; ++i) {
-        add_edge(i, i+1, graph);
-        add_edge(i+1, i, graph);
+        add_edge(i, i+1, 2*i, graph);
+        add_edge(i+1, i, 2*i + 1, graph);
     }
 
     bp::sum_product(graph, test_visitor());
