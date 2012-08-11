@@ -10,10 +10,10 @@ namespace bp {
 template<typename Graph, typename Visitor,
          typename MessagePropertyMap,
          typename BeliefPropertyMap>
-void loopy_sum_product(const Graph& graph, Visitor visitor,
-                       MessagePropertyMap message_map,
-                       BeliefPropertyMap belief_map,
-                       std::size_t n_iteration) {
+void apply_loopy_belief_propagation(const Graph& graph, Visitor visitor,
+                                    MessagePropertyMap message_map,
+                                    BeliefPropertyMap belief_map,
+                                    std::size_t n_iteration) {
     typedef boost::graph_traits<Graph> Traits;
     typedef typename Traits::vertex_descriptor Vertex;
     typedef typename Traits::edge_descriptor Edge;
@@ -61,9 +61,9 @@ void loopy_sum_product(const Graph& graph, Visitor visitor,
 }
 
 template<typename Graph, typename Visitor>
-void loopy_sum_product(Graph& graph, Visitor visitor,
-                       std::size_t n_iteration) {
-    loopy_sum_product(
+void apply_loopy_belief_propagation(Graph& graph, Visitor visitor,
+                                    std::size_t n_iteration) {
+    apply_loopy_belief_propagation(
         graph, visitor,
         boost::get(boost::edge_message, graph),
         boost::get(boost::vertex_belief, graph),
