@@ -70,12 +70,10 @@ TEST(MessagePassing, linear_graph)
                 vecS, vecS, bidirectionalS,
                 VertexProperty, EdgeProperty> Graph;
     typedef graph_traits<Graph> Traits;
-    typedef Traits::edge_iterator EdgeIterator;
-    typedef Traits::edge_descriptor Edge;
 
     Graph graph;
 
-    const int max_n_vertex = 10;
+    const int max_n_vertex = 100;
     for(int i=0; i<max_n_vertex; ++i) {
         add_vertex(graph);
     }
@@ -84,7 +82,7 @@ TEST(MessagePassing, linear_graph)
         add_edge(i+1, i, 2*i + 1, graph);
     }
 
-    bp::belief_propagation(graph, test_visitor());
+    bp::apply_belief_propagation(graph, test_visitor());
 
     Traits::edge_iterator ei, ei_end;
     tie(ei, ei_end) = edges(graph);
@@ -103,3 +101,51 @@ TEST(MessagePassing, linear_graph)
     }
 }
 
+TEST(MessagePassing, tree_graph)
+{
+    typedef property<vertex_belief_t, int> VertexProperty;
+    typedef property<edge_index_t, std::size_t,
+            property<edge_message_t, int> > EdgeProperty;
+    typedef adjacency_list<
+                vecS, vecS, bidirectionalS,
+                VertexProperty, EdgeProperty> Graph;
+    typedef graph_traits<Graph> Traits;
+
+    Graph graph;
+
+    const int max_n_depth = 10;
+    const int max_n_vertex = (1 << (max_n_depth + 1)) - 1;
+    for(int i=0; i<max_n_vertex; ++i) {
+        add_vertex(graph);
+    }
+    const int max_n_loop = (1 << max_n_depth) - 1;
+    int edge_counter = 0;
+    for(int i=0; i<max_n_loop; ++i, edge_counter += 4) {
+        const int i1 = 2*i + 1;
+        const int i2 = 2*i + 2;
+        add_edge(i, i1, edge_counter + 0, graph);
+        add_edge(i1, i, edge_counter + 1, graph);
+        add_edge(i, i2, edge_counter + 2, graph);
+        add_edge(i2, i, edge_counter + 3, graph);
+    }
+
+    bp::apply_belief_propagation(graph, test_visitor());
+
+    Traits::edge_iterator ei, ei_end;
+    tie(ei, ei_end) = edges(graph);
+    for(; ei != ei_end; ++ei) {
+        ASSERT_EQ(get(edge_message, graph, *ei), 1);
+    }
+    Traits::vertex_iterator vi, vi_end;
+    tie(vi, vi_end) = vertices(graph);
+    for(; vi != vi_end; ++vi) {
+        int index = (int)get(vertex_index, graph, *vi);
+        int result = get(vertex_belief, graph, *vi);
+        if(index == 0)
+            ASSERT_EQ(result, 2);
+        else if(max_n_loop <= index && index < max_n_vertex)
+            ASSERT_EQ(result, 1);
+        else
+            ASSERT_EQ(result, 3);
+    }
+}
